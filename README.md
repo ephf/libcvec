@@ -44,13 +44,13 @@ Returns a vector based on the type of the supplied items `items` and a capacity 
 int vresv(vec_t(<t>)* vec, size_t size);
 ```
 
-Reserves `size` bytes of `vec` and resizes `vec` if it needs more space. Returns `1` if its allocator's `realloc` fails and `0` if not.
+Reserves `size` bytes of `vec` and resizes `vec` if it needs more space. Returns `1` if its allocator's `realloc` fails, `2` if increasing the size would overflow a `size_t`, and `0` if there is no error.
 
 ```c
 int vpush(vec_t(<t>)* vec, t item);
 ```
 
-Pushes an item `item` to the end of `vec` and resizes `vec` if it needs more space. Returns `1` if its allocator's `realloc` fails and `0` if not.
+Pushes an item `item` to the end of `vec` and resizes `vec` if it needs more space. Returns `1` if its allocator's `realloc` fails, `2` if increasing the size would overflow a `size_t`, and `0` if there is no error.
 
 ```c
 int vpop(vec_t(<t>)* vec);
@@ -62,13 +62,13 @@ Removes the last value from `vec`. If the size of the removed item is greater th
 int vins(vec_t(<t>)* vec, size_t i, t item);
 ```
 
-Inserts an item `item` at index `i` into `vec` and resizes `vec` if it needs more space. If the index `i` is out of bounds, it will be set as the vector's length and the value will be pushed on to the vector `vec`, *inserting a value at `3` on a vector with a length of `1` will just push the value on to the vector*. Returns `1` if its allocator's `realloc` fails, `2` if the index `i` is out of bounds, and `0` if there is no error.
+Inserts an item `item` at index `i` into `vec` and resizes `vec` if it needs more space. If the index `i` is out of bounds, it will be set as the vector's length and the value will be pushed on to the vector `vec`, *inserting a value at `3` on a vector with a length of `1` will just push the value on to the vector*. Returns `1` if its allocator's `realloc` fails, `2` if increasing the size would overflow a `size_t` `3` if the index `i` is out of bounds, and `0` if there is no error.
 
 ```c
 int vrem(vec_t(<t>)* vec, size_t i);
 ```
 
-Removes the item at index `i` from `vec`. If the index `i` is out of bounds, it will be set as the vector's length and the value will be popped from the vector `vec`, *removing a value at `3` on a vector with a length of `1` will just pop the last value from the vector*. Returns `1` if the removed item's size is greater than `vec`'s size, `2` if the index `i` is out of bounds, and `0` if there is no error.
+Removes the item at index `i` from `vec`. If the index `i` is out of bounds, it will be set as the vector's length and the value will be popped from the vector `vec`, *removing a value at `3` on a vector with a length of `1` will just pop the last value from the vector*. Returns `1` if the removed item's size is greater than `vec`'s size, `3` if the index `i` is out of bounds, and `0` if there is no error.
 
 ```c
 size_t vsize(vec_t(<t>) vec);

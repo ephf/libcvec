@@ -20,15 +20,16 @@ static void free_with_size_hint(void* p) {
     free((size_t*) p - 1);
 }
 
-#if defined(__linux__)
-#include <malloc.h>
-v_allocator_t _V_DEFAULT_ALLOCR = {
-    &malloc,
-    &realloc,
-    &malloc_usable_size,
-    &free
-};
-#elif defined(__APPLE__)
+// issue with `malloc_usable_size`
+// #if defined(__linux__)
+// #include <malloc.h>
+// v_allocator_t _V_DEFAULT_ALLOCR = {
+//     &malloc,
+//     &realloc,
+//     &malloc_usable_size,
+//     &free
+// };
+#if defined(__APPLE__)
 #include <malloc/malloc.h>
 v_allocator_t _V_DEFAULT_ALLOCR = {
     &malloc,
@@ -63,9 +64,13 @@ int bvresv(void** vec, size_t size) {
     if(!*vec) *vec = bvecw(size, V_DEFAULT_ALLOCR);
     vec_header_t* h = (vec_header_t*)(*vec) - 1;
     size_t c = h->allocator->size(h);
+    if(size > SIZE_T_MAX - h->size) return 2;
     if((size += h->size) <= c) return 0;
     if(c <= 0) c = size;
-    else while((c *= 2) < size) ;;
+    else do {
+        if(c > SIZE_T_MAX / 2) c = SIZE_T_MAX;
+        else c *= 2;
+    } while(c < size);
     h = h->allocator->realloc(h, sizeof(vec_header_t) + c);
     if(!h) return 1;
     *vec = h + 1;
@@ -96,10 +101,10 @@ int bvins(void** vec, size_t i, void* data, size_t data_size) {
     int e = bvresv(vec, data_size);
     if(e) return e;
     vec_header_t* h = (vec_header_t*)(*vec) - 1;
-    e = (i > h->size) * 2;
+    e = (i > h->size) * 3;
     if(i >= h->size) {
-        int ce = bvcat(vec, data, data_size);
-        if(ce) return ce;
+        memcpy(*vec + h->size, data, data_size);
+        h->size += data_size;
         return e;
     }
     memmove(*vec + i + data_size, *vec + i, h->size - i);
@@ -115,7 +120,7 @@ int bvrem(void** vec, size_t i, size_t rem_size) {
         h->size = 0;
         return 1;
     }
-    int e = (i > h->size) * 2;
+    int e = (i > h->size) * 3;
     if(i >= h->size) {
         h->size -= rem_size;
         return e;
